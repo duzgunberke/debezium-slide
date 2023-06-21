@@ -1,0 +1,679 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>Debezium - Viveven</title>
+
+		<meta name="description" content="A Docker Slide for Viveven">
+		<meta name="author" content="Berke Duzgun">
+
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+		<link rel="stylesheet" href="dist/reset.css">
+		<link rel="stylesheet" href="dist/reveal.css">
+		<link rel="stylesheet" href="dist/theme/black.css" id="theme">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="plugin/highlight/monokai.css">
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+			<!-- Giriş -->
+				<section>
+					<a href="https://debezium.io/">
+						<img src="./examples/assets/debezium-logo.png" alt="debezium logo" style="height: 180px; margin: 0 auto 4rem auto; background: transparent;" class="demo-logo">
+					</a>
+					<h3>Debezium Sunumu</h3>
+					<p>
+						<small>Created by <a href="https://www.linkedin.com/in/berkeduzgun/">Berke Düzgün</a> </small>
+					</p>
+				</section>
+
+				<section>
+					<h2>Selamlar herkese</h2>
+					<p>
+						Debezium sunumuna hoşgeldiniz
+					</p>
+				</section>
+
+			<!-- Tanım -->
+				<section>
+					<section>
+						<h2>Giriş</h2>
+						<p><b>CDC</b>'nin Tanımı ve Amacı</p>
+						<br>
+						<a href="#/2/1" class="navigate-down">
+							<img class="r-frame" style="background: rgba(255,255,255,0.1);" width="178" height="238" data-src="https://static.slid.es/reveal/arrow.png" alt="Down arrow">
+						</a>
+					</section>
+					<section>
+						<h2>Debezium Nedir Sorusundan Önce <b>CDC</b> (Change Data Capture) Nedir Sorusuna Cevap Arayalım</h2>
+					</section>
+					<section>
+						<p>Kritik verilerin bulunduğu veritabanı uygulamalarında, veriler üzerindeki değişiklikleri veri güvenliği amacıyla kaydetmemiz gerekir.</p>
+						<p>Bunun yapılması için çeşitli yöntemler bulunmaktadır: Tetikleyiciler(triggers), saklı yordamlar(stored procedures) vb. Bu yöntemlere ek olarak, SQL Server geliştiricileri bu yöntemlerden daha performanslı ve sisteme daha az yük getirmek amacıyla yeni bir çözüm ürettiler.</p>
+					</section>
+					<section>
+						<p> "CDC" Veritabanında insert, update ve delete işlemleri neticesinde nihai olarak öncesinden farklı olan, bir başka deyişle değişiklik gösteren verileri yakalamamızı, izlememizi ve işlem yapabilmemizi sağlayan bir tasarım modelidir.</p>
+						<p> Bu model sayesinde verilerin ilk ve son hallerini elde edebilir ve türlü operasyonlar gerçekleştirebiliriz. Tabi ki de CDC’yi kullanabilmek için ilgili veritabanı tarafından destekleniyor olması gerekmektedir.</p>
+					</section>
+					<!-- Bizim senaryomuzda Debezium kullancağımız iin debezzım destekleyn db ler image -->
+					<section>
+						<h3>Verisel değişiklikleri izleyebilmek için trigger?? 🤔</h3>
+						<p>Tabi ki de trigger ile bu işlemleri gerçekleştirebilirsiniz. Lakin CDC ile ihtiyaca dönük operasyonları daha hızlı bir şekilde işleyebilirsiniz. Çünkü CDC verilere dair tüm bilgileri veritabanı loglarından toplayarak hizmet sağlamaktadır</p>
+						<br/>
+						<small>Bu sebepten dolayı trigger’lara nazaran daha performanslı ve az maliyetli bir iş süreci sağlamış bulunmaktadır. Ayrıca CDC sayesinden, veritabanında istenilen tablonun tamamı yahut istek doğrultusunda bir kısmı üzerinde yapılan değişiklikler takip edilerek süreçteki verisel akış filtrelenebilmekte ve arzu edinildiği şekilde yönetilebilmektedir.</small>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>CDC</h2>
+						<h3>Devam Edelim</h3>
+						<br>
+						<a href="#/2/1" class="navigate-down">
+							<img class="r-frame" style="background: rgba(255,255,255,0.1);" width="178" height="238" data-src="https://static.slid.es/reveal/arrow.png" alt="Down arrow">
+						</a>
+					</section>
+					<section>
+						<h2><b>CDC</b> (Change Data Capture) Özellikleri</h2>
+					</section>
+					<section>
+						<p> CDC, kaynak sistemdeki değişiklikleri yakalayarak bu değişiklikleri hedef sistemlere aktarır. </p>
+						<p>Bu sayede, farklı sistemler arasında veri entegrasyonu ve senkronizasyonu sağlanır. Sistemler arasında güncel ve doğru veri akışı elde edilir. </p>
+					</section>
+					<section>
+						<h3>CDC, veritabanındaki değişiklikleri gerçek zamanlı olarak takip eder ve hedef sistemlere anında aktarır. Bu sayede, veri entegrasyonu süreci hızlanır ve güncel veriler elde edilir.</h3>
+					</section>
+					<section>
+						<p> CDC, log tabanlı veya tablo tabanlı yöntemler kullanarak değişiklikleri takip eder. Log tabanlı CDC, veritabanının log dosyalarını analiz ederek değişiklikleri yakalar. Tablo tabanlı CDC ise özel olarak tasarlanmış tablolar kullanarak değişiklikleri izler.</p>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>PostgreSQL ve CDC</h2>
+						<br>
+						<a href="#/2/1" class="navigate-down">
+							<img class="r-frame" style="background: rgba(255,255,255,0.1);" width="178" height="238" data-src="https://static.slid.es/reveal/arrow.png" alt="Down arrow">
+						</a>
+					</section>
+					<section>
+						<h3>PostgreSQL'in kendisi doğal olarak CDC özelliği sağlamaz. Ancak, PostgreSQL'in Write-Ahead Log (WAL) mekanizması, CDC için kullanılabilir.</h3>
+					</section>
+					<section>
+						<h4>PostgreSQL, yapılan değişiklikleri kaydetmek için WAL mekanizmasını kullanır. CDC, bu WAL loglarını analiz ederek yapılan değişiklikleri yakalar ve hedef sistemlere aktarır.</h4>
+					</section>
+					<section>
+						<h2>Ve Geldik Sunum Konumuza</h2>
+						<h4>PostgreSQL için üçüncü taraf CDC eklentileri mevcuttur. Bu eklentiler, CDC işlemlerini kolaylaştırır ve PostgreSQL ile diğer sistemler arasında veri entegrasyonunu sağlar. (Debezium, Londiste, Bucardo)</h4>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>Debezium</h2>
+						<p><b>Debezium</b>'un Tanımı ve Amacı</p>
+						<br>
+						<a href="#/2/1" class="navigate-down">
+							<img class="r-frame" style="background: rgba(255,255,255,0.1);" width="178" height="238" data-src="https://static.slid.es/reveal/arrow.png" alt="Down arrow">
+						</a>
+					</section>
+					<section>
+						<h2>Debezium Nedir ?</h2>
+					</section>
+					<section>
+						<h3>Debezium, açık kaynaklı bir Change Data Capture(CDC) aracıdır ve geniş bir kullanıcı topluluğu tarafından desteklenir. Bu sayede, geliştirme süreçleri hızlanır ve kullanıcılar arasında deneyim paylaşımı sağlanır</h3>
+					</section>
+					<section>
+						<h4>Debezium, veritabanında istenilen tabloda yahut o tablonun istenilen kolonlarında olan tüm verisel değişiklikleri yakalayarak Kafka’ya aktarır. Bu değişiklikleri yakalama süreci, Debezium’un çalışmadığı süreçlerde de pasif bir şekilde de gerçekleştirilebilmektedir.</h4>
+					</section>
+					<section>
+						<img src="./examples/assets/shema-debezium.png" alt="" />						
+					</section>
+					<section>
+						<h4>Debezium, veritabanındaki değişiklikleri gerçek zamanlı olarak takip eder ve bu değişiklikleri çeşitli formatlarda (JSON, Avro, Protobuf vb.) hedef sistemlere aktarır. Bu sayede, sistemler arasında güncel ve doğru veri akışı sağlanır.</h4>
+					</section>
+					<section>
+						<h2>Peki bunları nasıl yapıyor?</h2>
+						<h5>Veritabanı’nın transaction log’unu okuyarak</h5>
+						<h5>Debezium ile Kafka Connect Apı yardımı ile Kafka Topic’e aktarılmasını sağlamaktayız. Bu bize yakaladığı verilerin dayanıklılığı ve güvenilirliğini de sağlamda yardımcı olur.</h5>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h3>Şimdi demo uygulama üzerinden daha da ayrıntılara gireceğiz</h3>
+						<h4>Ama bu demoda kullandığımız toollara kısa bir ön bilgilendirme yapmak isterim</h4>
+					</section>
+					<section>
+						<h4>Kafka Nedir</h4>
+						<p>Binlerce yazılım projesi ve şirket tarafından kullanılan, publisher/subscriber tabanlı olan open source distributed streaming platformudur. Temelde bilinmesi gereken Producer, Consumer, Broker ve Topic olmak üzere dört terminolojik terimi mevcuttur</p>
+					</section>
+					<section>
+						<ul>
+							<li>Producer, publisher rolündedir. Subscriber’lara mesaj gönderir.</li>
+							<li>Consumer, subscriber rolündedir. Producer’ların ürettiği mesajları dinlemekte ve tüketmektedir.</li>
+							<li>Topic, Kafka’da mesajların tutulduğu yapıdır.</li>
+							<li>Broker, Topic’leri barındıran sunuculardır.</li>
+						</ul>
+					</section>
+					<section>
+						<h5>Debezium ile veritabanında yakalanan değişikliklerin Kafka’ya aktarılabilmesi için verilerin bunun anlayabileceği dilden bir formata dönüştürülmesi gerekmektedir. Bunun için Kafka Connect tool’unu kullanıyor olacağız.</h5>
+					</section>
+					<section>
+						<h4>Kafka Connect Nedir? </h4>
+						<p>Kafka’nın veritabanlarına, consule yahut eleasticsearch gibi yapılara bağlanabilmesini ve metrikleri alabilmesini sağlayan bir tool’dur. Hususi olarak içeriğimiz çerçevesinde değerlendirirsek eğer Kafka ile Debezium arasında veri akışını sağlayacak olan köprü görevi gören yapılanmadır diyebiliriz.</p>					
+					</section>
+					<section>
+						<h2>Son olarak ZooKeeper Nedir?</h2>
+					</section>
+					<section>
+						<p>Birçok yapılandırma bilgisinin, distributed mimariler tarafından şu veya bu şekilde kullanıldığını biliyoruz. Tabi bu bilgilerin yönetimi manuel bir şekilde yapıldığı taktirde uygulanmalarının zorluğu nedeniyle insani durumlardan kaynaklı hatalar kaçınılmaz olabilmektedir</p>
+					</section>
+					<section>
+						Hadi diyelim doğru bir şekilde yönetildiler, bu sefer de uygulamalar dağıtıldığında yönetim karmaşası gibi durumlarla karşılaşılabilmektedir. İşte ZooKeeper, tüm bu riskleri gözardı edip güvenilir distributed yapılandırma yapmamızı sağlamaktadır.
+					</section>
+					<section>
+						<p>Haliyle, Kafka’nın yapılandırma bilgilerini depolamak, adlandırmak, senkronizasyonunu sağlamak ve koordine etmek için ZooKeeper yazılımını kullanıyor olacağız</p>
+						<h5>Debezium entegrasyonlarında ZooKeeper, temel kurulum dışında derinlemesine anlaşılmayı gerektirmemektedir.</h5>
+					</section>
+				</section>
+
+				<section data-background-video="./examples/assets/demo.mp4">
+
+				</section>
+					
+				
+
+				
+					<section>
+						<h4>Debezium İle PostgreSQL’de Change Data Capture(CDC) Nasıl Yapılır?</h4>
+					</section>
+					<section>
+						<p>İlk olarak Debezium’u hangi veritabanıyla kullanırsak kullanalım temelde Kafka ve Debezium çalıştırılmalı ve ZooKeeper ile yapılandırmalar ayarlanmalıdır.</p>
+						<p>Tüm bu yazılımlarım ayağa kaldırılması için Docker’dan istifade ediyor olacağız. Şimdi gelin ihtiyacımız olan araçları hızlıca oluşturup, ayağa kaldıralım.</p>
+					</section>
+					
+					<section data-auto-animate>
+					<h2 data-id="code-title">docker-compose-postgres.yaml</h2>
+					<pre data-id="code-animation"><code class="hljs cli" data-trim data-line-numbers>
+						version: '3.1'
+						services:
+						zookeeper:
+							image: debezium/zookeeper
+							ports:
+							- "2181:2181"
+							- "2888:2888"
+							- "3888:3888"
+						kafka:
+							image: debezium/kafka
+							ports:
+							- "9092:9092"
+							- "29092:29092"
+							depends_on:
+							- zookeeper
+							environment:
+							- ZOOKEEPER_CONNECT=zookeeper:2181
+							- KAFKA_ADVERTISED_LISTENERS=LISTENER_EXT://localhost:29092,LISTENER_INT://kafka:9092
+							- KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=LISTENER_INT:PLAINTEXT,LISTENER_EXT:PLAINTEXT
+							- KAFKA_LISTENERS=LISTENER_INT://0.0.0.0:9092,LISTENER_EXT://0.0.0.0:29092
+							- KAFKA_INTER_BROKER_LISTENER_NAME=LISTENER_INT
+						postgres:
+							image: debezium/postgres
+							ports:
+							- 5432:5432
+							environment:
+							- POSTGRES_USER=postgres
+							- POSTGRES_PASSWORD=123456
+							- POSTGRES_DB=DebeziumDB
+						connect:
+							image: debezium/connect
+							ports:
+							- 8083:8083
+							environment:
+							- BOOTSTRAP_SERVERS=kafka:9092
+							- GROUP_ID=1
+							- CONFIG_STORAGE_TOPIC=my_connect_configs
+							- OFFSET_STORAGE_TOPIC=my_connect_offsets
+							- STATUS_STORAGE_TOPIC=my_connect_statuses
+							depends_on:
+							- zookeeper
+							- kafka
+
+					</code></pre>
+					</section>
+					<section>
+						<p>Önceki slide bulunan docker compose dosyasına bakarsanız eğer ihtiyaç doğrultusundaki ilgili tüm araçları barındırmaktadır. Tüm image’lar da debezium’lu versiyonları kullanmamızın nedeni debezium ile çalışmaları için gerekli ayarlarının etkin gelmesindendir.</p>
+					</section>
+					<section>
+						<p>PostgreSQL’de ise debezium’un sağlıklı çalışabilmesi için wal_level konfigürasyonuna ‘logical’ değeri verilmelidir.</p>
+						<p>Bunun nedeni, PostgreSQL’de herhangi bir transaction yürütüldüğünde öncelikle bu işlem Write-ahead logging(WAL) adı verilen yerde gerçekleştirilmektedir. Debezium’da gerekli verileri WAL’dan toplayacağı için bu şekilde ayarlanması gerekmektedir</p>
+					</section>
+					<section>
+						<p>Haliyle debezium/postgres bu konfigürasyon temellerinde gelmektedir. Şimdi PostgreSQL sunucusunun yapılandırmalarına bir göz atıp öyle devam edelim.</p>
+					</section>
+					<section>
+						<img src="./examples/assets/debeziumdemo1.png" alt="" />
+						<h4>Logical, WAL verilerini harici sistemlerin tüketebilmesi için gerekli izin konfigürasyonunu sağlar.</h4>
+					</section>
+					<section data-auto-animate>
+						<h2 data-id="code-title">Pretty Code</h2>
+						<pre data-id="code-animation"><code class="hljs cli" data-trim data-line-numbers>
+							docker-compose -f docker-compose-postgres.yaml up
+						</code></pre>
+						<p>Şimdi bu docker compose dosyasını bu talimat eşliğinde çalıştıralım.</p>
+					</section>
+					<section>
+						<img src="./examples/assets/debeziumdemo2.png" alt="" />
+						<h3>Tüm yüklemelerin bitip, container’ların ayağa kaldırıldığından emin olalım.</h3>
+					</section>
+					<section data-auto-animate>
+						<h2 data-id="code-title">Pretty Code</h2>
+						<pre data-id="code-animation"><code class="hljs cli" data-trim data-line-numbers>
+							create  schema exampleschema
+							set search_path TO exampleschema,public;
+							create table exampleschema.exampletable (
+								column1 int,
+								column2 int,
+								column3 varchar(150),
+								primary key(column1)
+							);
+							alter table exampleschema.exampletable replica identity FULL;
+							insert into exampleschema.exampletable values (1000, 2000, 'example value');
+							insert into exampleschema.exampletable values (1001, 2001, 'example value 2');
+						</code></pre>
+						<small>PostgreSQL sunucusunda yukarıdaki docker-compose-postgres.yaml dosyasında oluşturulan ‘DebeziumDB’ veritabanı içerisinde aşağıdaki örnek tabloyu ve şemayı oluşturalım ve ardından örnek bir kaç veri insert edelim.</small>
+					</section>
+					<section>
+						<p>Şimdi ise debezzium connector’ın bizlere sunmuş olduğu API aracılığıyla dinlenecek olan veritabanı ve tablo bilgilerinin verilmesi gerekmektedir. Bunun için sonraki slaytdaki gibi bir .json dosyası oluşturarak gerekli bilgileri içerisinde tanımlamamız gerekmektedir.</p>
+					</section>
+					<section data-auto-animate>
+						<h2 data-id="code-title">register-postgres.json</h2>
+						<pre data-id="code-animation"><code class="hljs json" data-trim data-line-numbers>
+							{
+								"name": "example-connector",
+								"config": {
+									"connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+									"tasks.max": "1",
+									"database.hostname": "postgres",
+									"database.port": "5432",
+									"database.user": "postgres",
+									"database.password": "123456",
+									"database.dbname" : "DebeziumDB",
+									"database.server.name": "exampleserver",
+									"schema.include.list": "exampleschema",
+									"table.whitelist": "exampleschema.exampletable"
+								}
+							}
+						</code></pre>
+					</section>
+					<section data-auto-animate>
+						<h2 data-id="code-title">Pretty Code</h2>
+						<pre data-id="code-animation"><code class="hljs cli" data-trim data-line-numbers>
+							curl -i -X POST -H "Accept:application/json" -H "Content-Type:application/json" http://localhost:8083/connectors/ -d @register-postgres.json
+						</code></pre>
+						<p>Curl üzerinden yukarıdaki post isteğini göndermemiz yeterlidir.</p>
+					</section>
+					<section>
+						<img src="./examples/assets/debeziumdemo3.png" alt="" />
+						<p>Böylece bu son hamle eşliğinde bir connector tanımlayarak debezium’u etkinleştirmiş bulunmaktayız. Connector’ı etkinleştirme neticesinde yukarıdaki görselde tek satır halinde gelen result’ı doğru düzgün görmek isteyenler için formatlandırıp aşağı slayta bırakıyorum;</p>				
+					</section>
+					<section data-auto-animate>
+						<h2 data-id="code-title">Pretty Code</h2>
+						<pre data-id="code-animation"><code class="hljs cli" data-trim data-line-numbers>
+							{
+								"name":"example-connector",
+								"config":{
+								   "connector.class":"io.debezium.connector.postgresql.PostgresConnector",
+								   "tasks.max":"1",
+								   "database.hostname":"postgres",
+								   "database.port":"5432",
+								   "database.user":"postgres",
+								   "database.password":"123456",
+								   "database.dbname":"DebeziumDB",
+								   "database.server.name":"exampleserver",
+								   "schema.include.list":"exampleschema",
+								   "table.whitelist":"exampleschema.exampletable",
+								   "name":"example-connector"
+								},
+								"tasks":[
+									
+								],
+								"type":"source"
+							 }
+						</code></pre>
+						<p>Connector’ı etkinleştirme neticesinde result</p>
+					</section>
+					<section data-auto-animate>
+						<pre data-id="code-animation"><code class="hljs cli" data-trim data-line-numbers>
+							docker-compose -f docker-compose-postgres.yaml exec kafka /kafka/bin/kafka-console-consumer.sh --bootstrap-server kafka:9092 --from-beginning --property print.key=true --topic exampleserver.exampleschema.exampletable						</code></pre>
+						<p>Ve şimdi ise debezium connector ile takip edilen veritabanı sunucusundaki ilgili tablodaki veri değişikliklerinin izlemesini gerçekleştirelim. Bunun için yukarıdaki docker talimatının verilmesi yeterlidir.</p>
+					</section>
+					<section>
+						<img src="./examples/assets/debeziumdemo4.png" alt="" />
+						<small>Evet, görüldüğü üzere PostgreSQL veritabanındaki yapılan değişiklikler yakalanmış bulunmaktadır. Hatta debezium connector bağlanmadan önce girilen örnek veriler bile önceki paragraflarda bildirildiği üzere debezium çalıştırıldıktan sonra yakalanmış ve elde edilmiştir</small>
+					</section>
+					<section>
+						<h3>Şimdi gelen json verileri düzgün formata getirip, inceleyelim.</h3>
+						<h5>Bu kısım aslında demo'muzun en önemli kısmı</h5>
+					</section>
+					<section data-auto-animate>
+						<pre data-id="code-animation"><code class="hljs json" data-trim data-line-numbers>
+							{
+								"schema":{
+								   "type":"struct",
+								   "fields":[
+									  {
+										 "type":"int32",
+										 "optional":false,
+										 "field":"column1"
+									  }
+								   ],
+								   "optional":false,
+								   "name":"exampleserver.exampleschema.exampletable.Key"
+								},
+								"payload":{
+								   "column1":1000
+								}
+							 }{
+								"schema":{
+								   "type":"struct",
+								   "fields":[
+									  {
+										 "type":"struct",
+										 "fields":[
+											{
+											   "type":"int32",
+											   "optional":false,
+											   "field":"column1"
+											},
+											{
+											   "type":"int32",
+											   "optional":true,
+											   "field":"column2"
+											},
+											{
+											   "type":"string",
+											   "optional":true,
+											   "field":"column3"
+											}
+										 ],
+										 "optional":true,
+										 "name":"exampleserver.exampleschema.exampletable.Value",
+										 "field":"before"
+									  },
+									  {
+										 "type":"struct",
+										 "fields":[
+											{
+											   "type":"int32",
+											   "optional":false,
+											   "field":"column1"
+											},
+											{
+											   "type":"int32",
+											   "optional":true,
+											   "field":"column2"
+											},
+											{
+											   "type":"string",
+											   "optional":true,
+											   "field":"column3"
+											}
+										 ],
+										 "optional":true,
+										 "name":"exampleserver.exampleschema.exampletable.Value",
+										 "field":"after"
+									  },
+									  {
+										 "type":"struct",
+										 "fields":[
+											{
+											   "type":"string",
+											   "optional":false,
+											   "field":"version"
+											},
+											{
+											   "type":"string",
+											   "optional":false,
+											   "field":"connector"
+											},
+											{
+											   "type":"string",
+											   "optional":false,
+											   "field":"name"
+											},
+											{
+											   "type":"int64",
+											   "optional":false,
+											   "field":"ts_ms"
+											},
+											{
+											   "type":"string",
+											   "optional":true,
+											   "name":"io.debezium.data.Enum",
+											   "version":1,
+											   "parameters":{
+												  "allowed":"true,last,false,incremental"
+											   },
+											   "default":"false",
+											   "field":"snapshot"
+											},
+											{
+											   "type":"string",
+											   "optional":false,
+											   "field":"db"
+											},
+											{
+											   "type":"string",
+											   "optional":true,
+											   "field":"sequence"
+											},
+											{
+											   "type":"string",
+											   "optional":false,
+											   "field":"schema"
+											},
+											{
+											   "type":"string",
+											   "optional":false,
+											   "field":"table"
+											},
+											{
+											   "type":"int64",
+											   "optional":true,
+											   "field":"txId"
+											},
+											{
+											   "type":"int64",
+											   "optional":true,
+											   "field":"lsn"
+											},
+											{
+											   "type":"int64",
+											   "optional":true,
+											   "field":"xmin"
+											}
+										 ],
+										 "optional":false,
+										 "name":"io.debezium.connector.postgresql.Source",
+										 "field":"source"
+									  },
+									  {
+										 "type":"string",
+										 "optional":false,
+										 "field":"op"
+									  },
+									  {
+										 "type":"int64",
+										 "optional":true,
+										 "field":"ts_ms"
+									  },
+									  {
+										 "type":"struct",
+										 "fields":[
+											{
+											   "type":"string",
+											   "optional":false,
+											   "field":"id"
+											},
+											{
+											   "type":"int64",
+											   "optional":false,
+											   "field":"total_order"
+											},
+											{
+											   "type":"int64",
+											   "optional":false,
+											   "field":"data_collection_order"
+											}
+										 ],
+										 "optional":true,
+										 "field":"transaction"
+									  }
+								   ],
+								   "optional":false,
+								   "name":"exampleserver.exampleschema.exampletable.Envelope"
+								},
+								"payload":{
+								   "before":null,
+								   "after":{
+									  "column1":1000,
+									  "column2":2000,
+									  "column3":"example value"
+								   },
+								   "source":{
+									  "version":"1.8.1.Final",
+									  "connector":"postgresql",
+									  "name":"exampleserver",
+									  "ts_ms":1647763176365,
+									  "snapshot":"true",
+									  "db":"DebeziumDB",
+									  "sequence":"[null,\"23723656\"]",
+									  "schema":"exampleschema",
+									  "table":"exampletable",
+									  "txId":557,
+									  "lsn":23723656,
+									  "xmin":null
+								   },
+								   "op":"r",
+								   "ts_ms":1647763176368,
+								   "transaction":null
+								}
+							 }
+						</code></pre>
+					</section>
+					<section>
+						<p>Yukarıdaki json datayı incelerseniz eğer 177 ile 200. satır aralığında değişiklik olan verileri içeren ‘payload’ alanı mevcuttur.</p>
+						<p>Yakalanan verilerin hangi aksiyona tabii tutulduğunu 198. satırdaki ‘op’ alanındaki c, u, d ve r değerleri ifade etmektedir.</p>
+					</section>
+					<section>
+						<ol>
+							<li>c Yakalanan verinin eklendiğini ifade eder.</li>
+							<li>u Yakalanan verinin güncellendiğini ifade eder.</li>
+							<li>d Yakalanan verinin silindiğini ifade eder.</li>
+							<li>r Yakalanan verinin zaten var olduğunu ifade eder.</li>
+						</ol>
+					</section>
+					<section>
+						<h5>Gelen json data’da ki diğer alanlar ne?</h5>
+						<ul>
+							<li>schema; takip edilen tablonun yapısı ve kolonlarla ilgili bilgiler taşıyan kısımdır</li>
+							<li>payload; yukarıda görüdüğümüz üzere değişiklikler neticesinde akan verilere dair bilgi veren kısımdır.</li>
+							<li>before; değişiklik olan verilerin, değişiklik olmadan önceki hallerini taşıyan kısımdır. Insert haricinde update ve delete sorgularında dolu gelmektedir.</li>
+							<li>after; değişiklik olan verilerdeki son değerleri veren kısımdır. Delete hariç diğer sorgularda dolu gelmektedir.</li>
+						</ul>
+					</section>
+					<section data-auto-animate>
+							<pre data-id="code-animation"><code class="hljs json" data-trim data-line-numbers>
+								update exampleschema.exampletable
+								set
+								column1 = 5000,
+								column2 = 6000,
+								column3 = 'updated example value'
+								where column1 = 1000
+								</code></pre>
+								<p>Şimdi test amaçlı yukarıdaki veritabanı sorgularını çalıştıralım.
+								</p>
+					</section>
+					<section>
+						<img src="./examples/assets/debeziumdemo5.png" alt="" />
+						<small>Görüldüğü üzere çalıştırılan sorgu update sorgusu ise veritabanı açısından bu bir delete ve insert işlemi olduğu için önce ‘op’ değeri ‘d’ sonra da ‘c’ olan iki kayıt yakalanmaktadır. Haliyle ‘before’ ve ‘after’ alanlarından update yapılan sorguya dair verileri rahatlıkla yakalayabilmekteyiz.</small>
+					</section>
+					<section>
+						<h3>Böylece PostgreSQL ile CDC çalışmasını gerçekleştirmiş olduk. Mevzu bahis, Debezium ile yakalanan verilerin Kafka üzerinden .NET Core ortamında okunmasına geldi </h3>
+					</section>
+					<section>
+						<section>
+							<h3>Bunun için aşağıdaki gibi Confluent.Kafka kütüphanesini kullanarak basit bir consumer oluşturabiliriz.</h3>
+						</section>
+						<section data-auto-animate>
+							<pre data-id="code-animation"><code class="hljs c#" data-trim data-line-numbers>
+								using Confluent.Kafka;
+ 
+								ConsumerConfig config = new()
+								{
+									GroupId = "exampleserver.exampleschema.exampletable",
+									BootstrapServers = "localhost:29092",
+									AutoOffsetReset = AutoOffsetReset.Earliest,
+								 
+								};
+								 
+								using IConsumer< Ignore, string> consumer = new ConsumerBuilder< Ignore, string>(config).Build();
+								consumer.Subscribe("exampleserver.exampleschema.exampletable");
+								 
+								CancellationTokenSource source = new CancellationTokenSource();
+								Console.CancelKeyPress += (_, e) =>
+								{
+									e.Cancel = true;
+									source.Cancel();
+								};
+								while (true)
+								{
+									ConsumeResult< Ignore, string> result = consumer.Consume(source.Token);
+									Console.WriteLine($"Topic Name : {result.TopicPartitionOffset}");
+									Console.WriteLine($"Message : {result.Value}");
+								}										
+								</code></pre>
+						</section>
+					</section>
+					<section data-background-iframe="https://debezium.io/" data-background-interactive>
+						<div style="position: absolute; width: 40%; right: 0; box-shadow: 0 1px 4px rgba(0,0,0,0.5), 0 5px 25px rgba(0,0,0,0.2); background-color: rgba(0, 0, 0, 0.9); color: #fff; padding: 20px; font-size: 20px; text-align: left;">
+							<h2>Debezium Documentation</h2>
+						</div>
+					</section>
+					<section>
+						<h2>Teşekkürler 🎉</h2>
+					</section>
+				
+
+
+
+
+			</div>
+		</div>
+
+		<script src="dist/reveal.js"></script>
+		<script src="plugin/notes/notes.js"></script>
+		<script src="plugin/markdown/markdown.js"></script>
+		<script src="plugin/highlight/highlight.js"></script>
+		<script>
+			// More info about initialization & config:
+			// - https://revealjs.com/initialization/
+			// - https://revealjs.com/config/
+			Reveal.initialize({
+				hash: true,
+
+				// Learn about plugins: https://revealjs.com/plugins/
+				plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+			});
+		</script>
+	</body>
+</html>
