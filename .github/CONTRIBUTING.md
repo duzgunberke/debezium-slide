@@ -1,9 +1,9 @@
 ## Contributing
-Please keep the [issue tracker](https://github.com/duzgunberke/docker-slide/issues) limited to **bug reports**.
+Please keep the [issue tracker](https://github.com/duzgunberke/debezium-slide/issues) limited to **bug reports**.
 
 
 ### General Questions and Support
-If you have questions about how to use Docker the best place to ask is in the [Discussions](https://github.com/duzgunberke/docker-slide/discussions). Anything that isn't a bug report should be posted as a dicussion instead.
+If you have questions about how to use Docker the best place to ask is in the [Discussions](https://github.com/duzgunberke/debezium-slide/discussions). Anything that isn't a bug report should be posted as a dicussion instead.
 
 
 ### Pull Requests
